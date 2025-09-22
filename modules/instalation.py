@@ -29,11 +29,10 @@ def is_installed(software_name):
             continue
     return False
 
-def install_software():
+def install_softwares():
     print("--- Starting software installation from local files ---")
 
     # Dictionary with software and their local paths
-    # ATTENTION: Adjust the paths below to the correct locations on your computer.
     software_list = {
         "7zip": {
             "local_path": r"instaladores\7z2501-x64.exe",
