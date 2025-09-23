@@ -1,5 +1,5 @@
 from modules.information import gather_and_export_information
-from modules.instalation import install_softwares
+from modules.softwares import install_softwares
 from modules.windows import WindowsConfiguration
 
 def main():
@@ -7,7 +7,10 @@ def main():
     install_softwares()
     WindowsConfiguration.disable_uac()
     WindowsConfiguration.enable_rdp()
-    WindowsConfiguration.adjust_performance_settings()
+    WindowsConfiguration.set_performance_settings_better_performance()
+    WindowsConfiguration.set_performance_settings_custom()
+    WindowsConfiguration.enable_show_content_when_dragging()
+    WindowsConfiguration.enable_show_thumbnail_instead_of_icons()
     WindowsConfiguration.enable_network_sharing()
     WindowsConfiguration.configure_sleep_time()
     WindowsConfiguration.configure_automatic_updates()

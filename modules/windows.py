@@ -13,6 +13,7 @@ class WindowsConfiguration():
             print("UAC disabled successfully. The change will be applied on the next restart.")
         except subprocess.CalledProcessError as e:
             print(f"Error disabling UAC: {e}")
+    
 
     def enable_rdp():
         """
@@ -25,30 +26,52 @@ class WindowsConfiguration():
             print("Remote Desktop Connection enabled successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error enabling RDP: {e}")
-            
-    def adjust_performance_settings():
+
+    
+    def set_performance_settings_custom():
+        """
+        Adjusts the performance settings to 'Personalizado'.
+        """
         print("\n--- Configurando o desempenho do Windows ---")
         try:
-            # 1. Ajustar para melhor desempenho (muda para 'Melhor Desempenho')
-            print("Ajustando para o modo 'Melhor Desempenho'...")
-            performance_command = 'reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d 2 /f'
-            subprocess.run(performance_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-
-            # Comandos de registro separados que precisam de tratamento
-            print("Ativando 'Mostrar conteúdo da janela ao arrastar'...")
-            drag_command = 'Set-ItemProperty -Path "HKCU\\Control Panel\\Desktop" -Name "DragFullWindows" -Value 1 -Force'
-            subprocess.run(["powershell", "-Command", drag_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            
-            print("Ativando 'Mostrar miniaturas em vez de ícones'...")
-            thumbnails_command = 'Set-ItemProperty -Path "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "IconsOnly" -Value 0 -Force'
-            subprocess.run(["powershell", "-Command", thumbnails_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            
-            print("Configuração de desempenho concluída. Algumas mudanças podem exigir uma reinicialização.")
-        
+            print("Ajustando para o modo 'Personalizado'...")
+            registry_path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects"
+            name = "VisualFXSetting"
+            value = 3
+            custom_performance_command = f"Set-ItemProperty -Path {registry_path} -Name {name} -Value {value} -Force"
+            subprocess.run(["powershell", "-Command", custom_performance_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            print("Configuração de desempenho definida como 'Personalizao'.")
         except subprocess.CalledProcessError as e:
-            print(f"Ocorreu um erro ao configurar o desempenho. O script irá continuar. Detalhes: {e}")
-        except Exception as e:
-            print(f"Um erro inesperado ocorreu. Detalhes: {e}")
+            print(f"Ocorreu um erro. Detalhes: {e}")
+
+
+    def enable_show_content_when_dragging():
+        """
+        Enables the option to show the content of the window when dragging.
+        """
+        print("\nAtivando a opção DragFullWindows...")
+        try:
+            print("Criando classe WinAPI para habilitar a opção DragFullWindows...")
+            script_path = "./powershell/enable_show_content_when_dragging.ps1"
+            command = f"powershell -ExecutionPolicy Bypass -File {script_path}"
+            subprocess.run(command, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            print("Opção DragFullWindows habilitada com sucesso.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error enabling DragFullWindows: {e}")
+
+
+    def enable_show_thumbnail_instead_of_icons():
+        """
+        Enables the option to show the thumbnail instead of the icon when dragging.
+        """
+        print("\nAtivando a opção ShowThumbnailInsteadOfIcons...")
+        try:
+            show_thumbnail_instead_of_icons_command = 'Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "ShowThumbnailInsteadOfIcons" -Value 1 -Force'
+            subprocess.run(["powershell", "-Command", show_thumbnail_instead_of_icons_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            print("Opção ShowThumbnailInsteadOfIcons habilitada com sucesso.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error enabling ShowThumbnailInsteadOfIcons: {e}")
+
 
     def enable_network_sharing():
         """
@@ -58,21 +81,22 @@ class WindowsConfiguration():
         try:
             # Network profiles: Domain, Private and Public
             network_profiles = ["Domain", "Private", "Public"]
-            
+           
             # Firewall rule groups to be enabled
             firewall_rules = [
                 "Descoberta de Rede",
                 "Compartilhamento de Arquivo e Impressora (SMB-Entrada)"
             ]
-            
+          
             for profile in network_profiles:
                 for rule in firewall_rules:
-                    complete_command = f'netsh advfirewall firewall set rule group="{rule}" new profile={profile} enable=yes'
-                    subprocess.run(["powershell", "-Command", complete_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                    command = f'netsh advfirewall firewall set rule group="{rule}" new profile={profile} enable=yes'
+                    subprocess.run(["powershell", "-Command", command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
             
             print("Network sharing enabled successfully for all profiles.")
         except subprocess.CalledProcessError as e:
             print(f"Error enabling network sharing: {e}")
+
 
     def configure_sleep_time():
         """
@@ -104,9 +128,11 @@ class WindowsConfiguration():
         except subprocess.CalledProcessError as e:
             print(f"Error adjusting energy and sleep settings: {e}")
 
+
     def configure_automatic_updates():
         """
         Configures automatic updates.
+
         """
         print("\nConfiguring automatic updates...")
         try:
@@ -121,23 +147,25 @@ class WindowsConfiguration():
         except subprocess.CalledProcessError as e:
             print(f"Error configuring automatic updates: {e}")
 
-    def enable_telnet_and_smb():
-        """
-        Enables Telnet client and SMB support.
-        """
-        print("\nEnabling Telnet client and SMB support...")
-        try:
-            # Enable Telnet client
-            telnet_command = 'Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All'
-            subprocess.run(["powershell", "-Command", telnet_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            
-            # Enable SMB support
-            smb_command = 'Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -All'
-            subprocess.run(["powershell", "-Command", smb_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
 
-            print("Telnet client and SMB support enabled successfully.")
-        except subprocess.CalledProcessError as e:
-            print(f"Error enabling Telnet/SMB: {e}")
+    def enable_telnet_and_smb():
+         """
+         Enables Telnet client and SMB support.
+         """
+         print("\nEnabling Telnet client and SMB support...")
+         try:
+             # Enable Telnet client
+             telnet_command = 'Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All'
+             subprocess.run(["powershell", "-Command", telnet_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            
+             # Enable SMB support
+             smb_command = 'Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -All'
+             subprocess.run(["powershell", "-Command", smb_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+
+             print("Telnet client and SMB support enabled successfully.")
+         except subprocess.CalledProcessError as e:
+             print(f"Error enabling Telnet/SMB: {e}")
+
 
     def add_users_suporte_and_administrador():
         """
@@ -167,18 +195,20 @@ class WindowsConfiguration():
             print("ERROR: The 'password.txt' file was not found. Please ensure it exists and is in the correct directory.")
         except Exception as e:
             print(f"An error occurred while adding users: {e}")
-        
+
+
     def adjust_computer_name(new_name):
         """
         Adjusts the computer name.
         """
         print(f"\nAdjusting computer name to '{new_name}'...")
         try:
-            name_command = f'Rename-Computer -NewName "{new_name}"'
-            subprocess.run(["powershell", "-Command", name_command], check=True)
+            adjust_computer_name_command = f'Rename-Computer -NewName "{new_name}"'
+            subprocess.run(["powershell", "-Command", adjust_computer_name_command], check=True)
             print("Computer name changed successfully. Changes will be applied on the next restart.")
         except subprocess.CalledProcessError as e:
             print(f"Error changing computer name: {e}")
+
 
     def enable_system_protection():
         """
@@ -186,19 +216,20 @@ class WindowsConfiguration():
         """
         print("\nEnabling system protection...")
         try:
-            system_protection_command = 'Enable-ComputerRestore -Drive "C:"'
-            subprocess.run(["powershell", "-Command", system_protection_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            enable_system_protection_command = 'Enable-ComputerRestore -Drive "C:"'
+            subprocess.run(["powershell", "-Command", enable_system_protection_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
             print("System protection enabled successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error enabling system protection: {e}")
         
         print("Setting system restore size to 10GB...")
         try:
-            system_protection_command = 'Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore" -Name "SRQuotaSize" -Value 10240 -Force'
-            subprocess.run(["powershell", "-Command", system_protection_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            set_system_restore_size_command = 'Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore" -Name "SRQuotaSize" -Value 10240 -Force'
+            subprocess.run(["powershell", "-Command", set_system_restore_size_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
             print("System restore size set to 10GB successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error setting system restore size: {e}")
+
 
     def create_system_restore_point():
         """
@@ -206,13 +237,13 @@ class WindowsConfiguration():
         """
         print("\nCreating a system restore point...")
         try:
-            # Command to create a system restore point with a description
-            restore_point_command = 'Checkpoint-Computer -Description "System restore point before reboot"'
-            subprocess.run(["powershell", "-Command", restore_point_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            create_system_restore_point_command = 'Checkpoint-Computer -Description "System restore point before reboot"'
+            subprocess.run(["powershell", "-Command", create_system_restore_point_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
             print("System restore point created successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Warning: Unable to create the system restore point. Reason: {e}")
     
+
     def reboot_computer():
         """
         Reinitializes the computer immediately.
@@ -221,10 +252,12 @@ class WindowsConfiguration():
         if answer == "y":
             print("Starting the computer reboot...")
             try:
-                # Command to reboot the operating system.
-                # The "/r" parameter means reboot, and "/t 0" means immediately.
+                # The "/r" parameter means reboot
                 # The "/f" parameter forces the termination of running programs, if necessary.
-                subprocess.run(["shutdown", "/r", "/t", "0", "/f"], check=True)
+                subprocess.run(["shutdown", "/r", "/f"], check=True)
                 print("Reboot command issued successfully.")
             except Exception as e:
                 print(f"Error attempting to reboot the computer: {e}")
+        else:
+            print("O script foi executado com sucesso.")
+            print("Algumas alterações serão aplicadas apenas após reinicialização.")
