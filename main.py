@@ -7,7 +7,6 @@ def main():
     install_softwares()
     WindowsConfiguration.disable_uac()
     WindowsConfiguration.enable_rdp()
-    WindowsConfiguration.set_performance_settings_better_performance()
     WindowsConfiguration.set_performance_settings_custom()
     WindowsConfiguration.enable_show_content_when_dragging()
     WindowsConfiguration.enable_show_thumbnail_instead_of_icons()
