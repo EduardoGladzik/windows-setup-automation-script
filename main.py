@@ -16,7 +16,7 @@ def main():
     WindowsConfiguration.configure_automatic_updates()
     WindowsConfiguration.enable_telnet_and_smb()
     WindowsConfiguration.add_users_suporte_and_administrador()
-    WindowsConfiguration.adjust_computer_name(input("Enter the new computer name: "))
+    WindowsConfiguration.adjust_computer_name(input("Digite o novo nome do computador: "))
     WindowsConfiguration.enable_system_protection()
     WindowsConfiguration.create_system_restore_point()
     WindowsConfiguration.reboot_computer()

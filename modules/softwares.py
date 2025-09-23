@@ -30,7 +30,7 @@ def is_installed(software_name):
     return False
 
 def install_softwares():
-    print("--- Starting software installation from local files ---")
+    print("--- Iniciando instalação dos softwares a partir dos arquivos locais ---")
 
     # Dictionary with software and their local paths
     software_list = {
@@ -64,21 +64,21 @@ def install_softwares():
     for name, data in software_list.items():
         # Check if the software is already installed
         if is_installed(data["verification_name"]):
-            print(f"\n{name} is already installed. Skipping installation.")
+            print(f"\n{name} já está instalado. Pulando instalação.")
             continue
         
         # Check if the installation file exists in the local path
         if not os.path.exists(data["local_path"]):
-            print(f"\nWarning: Installation file for {name} not found at '{data['local_path']}'. Skipping installation.")
+            print(f"\nAviso: Arquivo de instalação para {name} não encontrado em '{data['local_path']}'. Pulando instalação.")
             continue
 
         # Execute silent installation
-        print(f"\nStarting installation of {name}...")
+        print(f"\nIniciando instalação de {name}...")
         try:
             command = [data["local_path"], data["silent_parameter"]]
             subprocess.run(command, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            print(f"{name} installed successfully.")
+            print(f"{name} instalado com sucesso.")
         except subprocess.CalledProcessError as e:
-            print(f"Error installing {name}: {e}")
+            print(f"Erro ao instalar {name}: {e}")
         except FileNotFoundError:
-            print(f"Error: Installation file for {name} not found.")
+            print(f"Erro: Arquivo de instalação para {name} não encontrado.")
