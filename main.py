@@ -1,24 +1,73 @@
-from modules.information import gather_and_export_information
-from modules.softwares import install_softwares
-from modules.windows import WindowsConfiguration
+from modules.information import SystemInformation as sysinfo
+from modules.softwares import Softwares as softwares
+from modules.windows import WindowsConfiguration as winconfig
+import os
+import datetime
+
 
 def main():
-    gather_and_export_information()
-    install_softwares()
-    WindowsConfiguration.disable_uac()
-    WindowsConfiguration.enable_rdp()
-    WindowsConfiguration.set_performance_settings_custom()
-    WindowsConfiguration.enable_show_content_when_dragging()
-    WindowsConfiguration.enable_show_thumbnail_instead_of_icons()
-    WindowsConfiguration.enable_network_sharing()
-    WindowsConfiguration.configure_sleep_time()
-    WindowsConfiguration.configure_automatic_updates()
-    WindowsConfiguration.enable_telnet_and_smb()
-    WindowsConfiguration.add_users_suporte_and_administrador()
-    WindowsConfiguration.adjust_computer_name(input("Digite o novo nome do computador: "))
-    WindowsConfiguration.enable_system_protection()
-    WindowsConfiguration.create_system_restore_point()
-    WindowsConfiguration.reboot_computer()
+    
+    print(" ========================================="
+          + "\nIniciando Script de Configuração do Windows"
+          + "\n =========================================")
+    print("\n--- Instalação de Softwares ---")
+    for name, data in softwares.software_list.items():
+        if softwares.is_installed(data["verification_name"]):
+            print(f"\n{name} já está instalado. Pulando instalação.")
+            continue
+       
+        if not os.path.exists(data["local_path"]):
+            print(f"\nArquivo de instalação para {name} não encontrado. Pulando instalação.")
+            continue
+        
+        print("--- Iniciando instalação dos softwares a partir dos arquivos locais ---")
+        print(f"\nIniciando instalação de {name}...")
+        softwares.install_softwares(name, data)
+
+    
+    # winconfig.disable_uac()
+    # winconfig.enable_rdp()
+    # winconfig.enable_system_protection()
+    # winconfig.enable_telnet_and_smb()
+    # winconfig.configure_sleep_time()
+    # winconfig.add_users_suporte_and_administrador()
+    # winconfig.enable_network_sharing()
+    # winconfig.configure_automatic_updates()
+
+    print("\n--- Configuração do Nome do Computador ---")
+    print(f"Nome atual do computador: {os.environ['COMPUTERNAME']}")
+    new_computer_name = input("\nDigite o novo nome do computador (ou pressione Enter para manter o nome atual): ")
+    if not new_computer_name:
+        new_computer_name = os.environ['COMPUTERNAME']
+
+    else:
+        print(f"\nAlterando nome do computador para '{new_computer_name}'...")
+        winconfig.alter_computer_name()
+    
+    # winconfig.create_system_restore_point()
+
+    print("\n--- Informações do sistema ---")
+    print("coletando informações do sistema...")
+    print(f"criando {sysinfo.filename} na área de trabalho...")
+    if not os.path.exists(sysinfo.file_path):
+        with open(sysinfo.file_path, "w", encoding="utf-8") as file:
+            try:
+                file.write("### Relatório de Informações do Sistema ###\n\n")
+                file.write(f"Data e Hora: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n")
+                for info, data in sysinfo.system_informations.items():
+                    sysinfo.write_information(file, info, data)
+                print(f"Informações do sistema exportadas para {sysinfo.filename}!")
+            except Exception as e:
+                print(f"Erro ao criar o arquivo '{sysinfo.filename}': {e}")
+    else:
+        print(f"O arquivo '{sysinfo.filename}' já existe na área de trabalho.")
+    
+    print("\n--- Finalizando Script ---")
+    answer = input("Digite 's' para reiniciar o computador ou qualquer outra tecla para sair: ")
+    if answer.lower() == 's':
+        winconfig.reboot_computer()
+    else:
+        print("Script executado com sucesso!\nAlgumas alterações serão aplicadas após reinicialização.")
 
 if __name__ == "__main__":
     main()
