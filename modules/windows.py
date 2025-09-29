@@ -1,4 +1,5 @@
 import subprocess
+import pyautogui
 
 class WindowsConfiguration():
     time_in_minutes = 60
@@ -73,6 +74,34 @@ class WindowsConfiguration():
         except subprocess.CalledProcessError as e:
             print(f"Erro ao ajustar configurações de energia e suspensão: {e}")
 
+
+    def configure_performance_settings():
+        """
+        Configures performance settings using pyautogui to navigate the GUI.
+        """
+        pyautogui.hotkey('win', 'r')
+        pyautogui.write('SystemPropertiesPerformance')
+        pyautogui.press('enter')
+        pyautogui.sleep(2)
+        
+        pyautogui.press('down', presses=3)
+        pyautogui.press('tab')
+        pyautogui.press('down', presses=8)
+        pyautogui.sleep(0.5)
+        pyautogui.press('space')
+        pyautogui.press('down')
+        pyautogui.sleep(0.5)
+        pyautogui.press('space')
+        pyautogui.press('down', presses=6)
+        pyautogui.sleep(0.5)
+        pyautogui.press('space')
+        pyautogui.press('down', presses=2)
+        pyautogui.sleep(0.5)
+        pyautogui.press('space')
+        pyautogui.press('tab')
+        pyautogui.press('enter')
+
+        print("Configurações de desempenho ajustadas com sucesso.")
 
     def configure_automatic_updates():
         """

@@ -39,7 +39,8 @@ def main():
     winconfig.enable_rdp()
 
     print("\n--- Configurações de Desempenho ---")
-    # configurações de desempenho
+    print("\nConfigurando para melhor desempenho...")
+    winconfig.configure_performance_settings()
 
     print("\n--- Configurando Atualizações Automáticas ---")
     # winconfig.configure_automatic_updates()
@@ -53,7 +54,7 @@ def main():
 
     print("\n--- Configurações de Energia ---")
     print("\nConfigurando todas as opções de energia e suspensão para 1 hora.")
-    winconfig.configure_sleep_time()
+    winconfig.configure_sleep_time(winconfig)
 
     print("\n--- Configuração do Nome do Computador ---")
     print(f"Nome atual do computador: {os.environ['COMPUTERNAME']}")
