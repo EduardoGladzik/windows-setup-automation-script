@@ -1,12 +1,21 @@
 import subprocess
 
 class WindowsConfiguration():
+    time_in_minutes = 60
+    commands = {
+        "ac_monitor_timeout": f'powercfg /change monitor-timeout-ac {time_in_minutes}',
+        "dc_monitor_timeout": f'powercfg /change monitor-timeout-dc {time_in_minutes}',
+        "ac_standby_timeout": f'powercfg /change standby-timeout-ac {time_in_minutes}',
+        "dc_standby_timeout": f'powercfg /change standby-timeout-dc {time_in_minutes}',
+        "ac_hibernate_timeout": f'powercfg /change hibernate-timeout-ac {time_in_minutes}',
+        "dc_hibernate_timeout": f'powercfg /change hibernate-timeout-dc {time_in_minutes}',
+    }
+
 
     def disable_uac():
         """
         Disables User Account Control (UAC).
         """
-        print("--- Desabilitando o Controle de Conta de Usuário (UAC) ---")
         try:
             uac_command = 'Set-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System" -Name "EnableLUA" -Value 0 -Force'
             subprocess.run(["powershell", "-Command", uac_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -19,7 +28,6 @@ class WindowsConfiguration():
         """
         Enables Remote Desktop Connection.
         """
-        print("\n--- Habilitando Conexão com Área de Trabalho Remota ---")
         try:
             rdp_command = 'Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name "fDenyTSConnections" -Value 0 -Force'
             subprocess.run(["powershell", "-Command", rdp_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -53,32 +61,14 @@ class WindowsConfiguration():
             print(f"Erro ao habilitar compartilhamento de rede: {e}")
 
 
-    def configure_sleep_time():
+    def configure_sleep_time(self):
         """
-        Configures the sleep time to 1 hour (60 minutes).
+        Configures the sleep time to 1 hour.
         """
-        print("\nConfigurando todas as opções de energia e suspensão para 1 hora.")
         try:
-            time_in_minutes = 60
-            
-            # Configure the screen timeout (on AC and battery)
-            ac_monitor_timeout_command  = f'powercfg /change monitor-timeout-ac {time_in_minutes}'
-            dc_monitor_timeout_command = f'powercfg /change monitor-timeout-dc {time_in_minutes}'
-            subprocess.run(ac_monitor_timeout_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            subprocess.run(dc_monitor_timeout_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            for command in self.commands.values():
+                subprocess.run(command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
 
-            # Configure the computer standby timeout (on AC and battery)
-            ac_standby_timeout_command = f'powercfg /change standby-timeout-ac {time_in_minutes}'
-            dc_standby_timeout_command = f'powercfg /change standby-timeout-dc {time_in_minutes}'
-            subprocess.run(ac_standby_timeout_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            subprocess.run(dc_standby_timeout_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-
-            # Configure the hibernate timeout (on AC and battery)
-            ac_hibernate_timeout_command = f'powercfg /change hibernate-timeout-ac {time_in_minutes}'
-            dc_hibernate_timeout_command = f'powercfg /change hibernate-timeout-dc {time_in_minutes}'
-            subprocess.run(ac_hibernate_timeout_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            subprocess.run(dc_hibernate_timeout_command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            
             print("Todas as opções de energia e suspensão ajustadas para 1 hora.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao ajustar configurações de energia e suspensão: {e}")
@@ -86,34 +76,51 @@ class WindowsConfiguration():
 
     def configure_automatic_updates():
         """
-        Configures automatic updates.
-
+        Configures automatic updates for Windows 11.
+        Requires administrator privileges.
         """
         print("\nConfigurando atualizações automáticas...")
         try:
-            # Create the registry key if it doesn't exist
-            create_key_command = 'New-Item -Path "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU" -Force'
-            subprocess.run(["powershell", "-Command", create_key_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            # Define the registry paths
+            au_path = "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU"
+            wu_path = "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate"
 
-            # Set automatic updates policy to 'Automatic download and notification for installation' (value 3)
-            updates_command = 'Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU" -Name AUOptions -Value 3 -Force'
-            subprocess.run(["powershell", "-Command", updates_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            commands = [
+                f'New-Item -Path "{wu_path}" -Force',
+                f'New-Item -Path "{au_path}" -Force',
+                # Enable Automatic Updates
+                f'Set-ItemProperty -Path "{au_path}" -Name "NoAutoUpdate" -Value 0 -Type DWord -Force',
+                # Configure auto download and notify for install (3 = Auto download and notify for install)
+                f'Set-ItemProperty -Path "{au_path}" -Name "AUOptions" -Value 3 -Type DWord -Force',
+                # Enable automatic updates
+                f'Set-ItemProperty -Path "{au_path}" -Name "UseWUServer" -Value 0 -Type DWord -Force',
+                # Configure update detection frequency
+                f'Set-ItemProperty -Path "{au_path}" -Name "DetectionFrequencyEnabled" -Value 1 -Type DWord -Force',
+                f'Set-ItemProperty -Path "{au_path}" -Name "DetectionFrequency" -Value 22 -Type DWord -Force',
+                # Windows 11 specific settings
+                f'Set-ItemProperty -Path "{wu_path}" -Name "TargetReleaseVersion" -Value 1 -Type DWord -Force',
+                f'Set-ItemProperty -Path "{wu_path}" -Name "DisableWUfBSafeguards" -Value 0 -Type DWord -Force'
+            ]
+
+            for command in commands:
+                subprocess.run(["powershell", "-Command", command], 
+                            check=True, 
+                            creationflags=subprocess.CREATE_NO_WINDOW)
+
             print("Atualizações automáticas configuradas com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao configurar atualizações automáticas: {e}")
+            print("Certifique-se de executar o script como administrador.")
 
 
     def enable_telnet_and_smb():
          """
          Enables Telnet client and SMB support.
          """
-         print("\nHabilitando cliente Telnet e suporte SMB...")
          try:
-             # Enable Telnet client
              telnet_command = 'Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All'
              subprocess.run(["powershell", "-Command", telnet_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
             
-             # Enable SMB support
              smb_command = 'Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -All'
              subprocess.run(["powershell", "-Command", smb_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
 
@@ -122,43 +129,13 @@ class WindowsConfiguration():
              print(f"Erro ao habilitar Telnet/SMB: {e}")
 
 
-    def add_users_suporte_and_administrador():
-        """
-        Adds the 'Suporte' and 'Administrador' users to the system.
-        """
-        print("--- Adicionando usuário 'Suporte' e 'Administrador' ---")
-        try:
-            # Read the password from the password.txt file
-            with open("_private/password.txt", "r") as f:
-                password = f.read().strip()
-
-            # Add the 'suporte' user with the read password
-            subprocess.run(["net", "user", "suporte", password, "/add"])
-
-            # Add the 'administrador' user with the read password
-            subprocess.run(["net", "user", "administrador", password, "/add"])
-
-            # Add the 'suporte' user to the 'Administrators' group
-            subprocess.run(["net", "localgroup", "Administradores", "suporte", "/add"])
-
-            # Add the 'administrador' user to the 'Administrators' group
-            subprocess.run(["net", "localgroup", "Administradores", "administrador", "/add"])
-
-            print("Usuários 'suporte' e 'administrador' criados e adicionados ao grupo 'Administradores' com sucesso.")
-
-        except FileNotFoundError:
-            print("ERRO: O arquivo 'password.txt' não foi encontrado. Certifique-se de que ele existe e está no diretório correto.")
-        except Exception as e:
-            print(f"Ocorreu um erro ao adicionar usuários: {e}")
-
-
     def alter_computer_name(new_name):
         """
         Adjusts the computer name.
         """
         try:
-            adjust_computer_name_command = f'Rename-Computer -NewName "{new_name}"'
-            subprocess.run(["powershell", "-Command", adjust_computer_name_command], check=True)
+            alter_computer_name_command = f'Rename-Computer -NewName "{new_name}"'
+            subprocess.run(["powershell", "-Command", alter_computer_name_command], check=True)
             print("Nome do computador alterado com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao alterar nome do computador: {e}")
@@ -168,7 +145,6 @@ class WindowsConfiguration():
         """
         Enables system protection.
         """
-        print("\nHabilitando proteção do sistema...")
         try:
             enable_system_protection_command = 'Enable-ComputerRestore -Drive "C:"'
             subprocess.run(["powershell", "-Command", enable_system_protection_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -189,7 +165,6 @@ class WindowsConfiguration():
         """
         Creates a system restore point.
         """
-        print("\nCriando ponto de restauração do sistema...")
         try:
             create_system_restore_point_command = 'Checkpoint-Computer -Description "System restore point before reboot"'
             subprocess.run(["powershell", "-Command", create_system_restore_point_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
