@@ -9,6 +9,15 @@ def main():
     print(" ========================================="
           + "\nIniciando Script de Configuração do Windows"
           + "\n =========================================")
+    
+    print("\n--- Informações do sistema ---")
+    print("coletando informações do sistema...")
+    print(f"criando {sysinfo.filename} na área de trabalho...")
+    if not os.path.exists(sysinfo.file_path):
+        sysinfo.create_system_info_file(sysinfo)
+    else:
+        print(f"O arquivo '{sysinfo.filename}' já existe na área de trabalho.")
+
     print("\n--- Instalação de Softwares ---")
     for name, data in softwares.software_list.items():
         if softwares.is_installed(data["verification_name"]):
@@ -23,15 +32,28 @@ def main():
         print(f"\nIniciando instalação de {name}...")
         softwares.install_softwares(name, data)
 
-    
-    # winconfig.disable_uac()
-    # winconfig.enable_rdp()
-    # winconfig.enable_system_protection()
-    # winconfig.enable_telnet_and_smb()
-    # winconfig.configure_sleep_time()
-    # winconfig.add_users_suporte_and_administrador()
-    # winconfig.enable_network_sharing()
+    print("\n--- Desabilitando o Controle de Conta de Usuário (UAC) ---")
+    winconfig.disable_uac()
+
+    print("\n--- Habilitando Conexão com Área de Trabalho Remota ---")
+    winconfig.enable_rdp()
+
+    print("\n--- Configurações de Desempenho ---")
+    # configurações de desempenho
+
+    print("\n--- Configurando Atualizações Automáticas ---")
     # winconfig.configure_automatic_updates()
+
+    print("\n--- Habilitando Telnet e SMB ---")
+    print("\nHabilitando cliente Telnet e suporte SMB...")
+    winconfig.enable_telnet_and_smb()
+
+    print("\n--- Configurações de Rede ---")
+    # winconfig.enable_network_sharing()
+
+    print("\n--- Configurações de Energia ---")
+    print("\nConfigurando todas as opções de energia e suspensão para 1 hora.")
+    winconfig.configure_sleep_time()
 
     print("\n--- Configuração do Nome do Computador ---")
     print(f"Nome atual do computador: {os.environ['COMPUTERNAME']}")
@@ -43,15 +65,12 @@ def main():
         print(f"\nAlterando nome do computador para '{new_computer_name}'...")
         winconfig.alter_computer_name()
     
-    # winconfig.create_system_restore_point()
+    print("\n--- Configurações de Backup e Restauração ---")
+    print("\nHabilitando proteção do sistema...")
+    winconfig.enable_system_protection()
 
-    print("\n--- Informações do sistema ---")
-    print("coletando informações do sistema...")
-    print(f"criando {sysinfo.filename} na área de trabalho...")
-    if not os.path.exists(sysinfo.file_path):
-        sysinfo.create_system_info_file(sysinfo)
-    else:
-        print(f"O arquivo '{sysinfo.filename}' já existe na área de trabalho.")
+    print("\nCriando ponto de restauração do sistema...")
+    winconfig.create_system_restore_point()
     
     print("\n--- Finalizando Script ---")
     answer = input("Digite 's' para reiniciar o computador ou qualquer outra tecla para sair: ")
