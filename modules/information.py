@@ -1,6 +1,7 @@
 import subprocess
 import getpass
 import os
+import datetime
 
 class SystemInformation():
     filename = "system_info.txt"
@@ -26,3 +27,14 @@ class SystemInformation():
         except Exception as e:
             print(f"Erro ao escrever informações: {e}")
             return
+        
+    def create_system_info_file(self):
+        with open(self.file_path, "w", encoding="utf-8") as file:
+            try:
+                file.write("### Relatório de Informações do Sistema ###\n\n")
+                file.write(f"Data e Hora: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n")
+                for info, data in self.system_informations.items():
+                    self.write_information(file, info, data)
+                print(f"Informações do sistema exportadas para {self.filename}!")
+            except Exception as e:
+                print(f"Erro ao criar o arquivo '{self.filename}': {e}")

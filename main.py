@@ -2,7 +2,6 @@ from modules.information import SystemInformation as sysinfo
 from modules.softwares import Softwares as softwares
 from modules.windows import WindowsConfiguration as winconfig
 import os
-import datetime
 
 
 def main():
@@ -50,15 +49,7 @@ def main():
     print("coletando informações do sistema...")
     print(f"criando {sysinfo.filename} na área de trabalho...")
     if not os.path.exists(sysinfo.file_path):
-        with open(sysinfo.file_path, "w", encoding="utf-8") as file:
-            try:
-                file.write("### Relatório de Informações do Sistema ###\n\n")
-                file.write(f"Data e Hora: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n")
-                for info, data in sysinfo.system_informations.items():
-                    sysinfo.write_information(file, info, data)
-                print(f"Informações do sistema exportadas para {sysinfo.filename}!")
-            except Exception as e:
-                print(f"Erro ao criar o arquivo '{sysinfo.filename}': {e}")
+        sysinfo.create_system_info_file(sysinfo)
     else:
         print(f"O arquivo '{sysinfo.filename}' já existe na área de trabalho.")
     
