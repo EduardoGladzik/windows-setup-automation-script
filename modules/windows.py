@@ -6,7 +6,7 @@ class WindowsConfiguration():
         """
         Disables User Account Control (UAC).
         """
-        print("Desabilitando o Controle de Conta de Usuário (UAC)...")
+        print("--- Desabilitando o Controle de Conta de Usuário (UAC) ---")
         try:
             uac_command = 'Set-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System" -Name "EnableLUA" -Value 0 -Force'
             subprocess.run(["powershell", "-Command", uac_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
@@ -19,58 +19,13 @@ class WindowsConfiguration():
         """
         Enables Remote Desktop Connection.
         """
-        print("\nHabilitando Conexão com Área de Trabalho Remota...")
+        print("\n--- Habilitando Conexão com Área de Trabalho Remota ---")
         try:
             rdp_command = 'Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name "fDenyTSConnections" -Value 0 -Force'
             subprocess.run(["powershell", "-Command", rdp_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
             print("Conexão com Área de Trabalho Remota habilitada com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao habilitar Conexão com Área de Trabalho Remota: {e}")
-
-    
-    def set_performance_settings_custom():
-        """
-        Adjusts the performance settings to 'Personalizado'.
-        """
-        print("\n--- Configurando o desempenho do Windows ---")
-        try:
-            print("Ajustando para o modo 'Personalizado'...")
-            registry_path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects"
-            name = "VisualFXSetting"
-            value = 3
-            custom_performance_command = f"Set-ItemProperty -Path {registry_path} -Name {name} -Value {value} -Force"
-            subprocess.run(["powershell", "-Command", custom_performance_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            print("Configuração de desempenho definida como 'Personalizado'.")
-        except subprocess.CalledProcessError as e:
-            print(f"Ocorreu um erro. Detalhes: {e}")
-
-
-    def enable_show_content_when_dragging():
-        """
-        Enables the option to show the content of the window when dragging.
-        """
-        print("\nAtivando a opção 'Mostar conteúdo da janela ao arrastar'...")
-        try:
-            print("Criando classe WinAPI para habilitar a opção 'Mostar conteúdo da janela ao arrastar'...")
-            script_path = "./powershell/enable_show_content_when_dragging.ps1"
-            command = f"powershell -ExecutionPolicy Bypass -File {script_path}"
-            subprocess.run(command, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            print("Opção 'Mostar conteúdo da janela ao arrastar' habilitada com sucesso.")
-        except subprocess.CalledProcessError as e:
-            print(f"Erro ao habilitar 'Mostar conteúdo da janela ao arrastar': {e}")
-
-
-    def enable_show_thumbnail_instead_of_icons():
-        """
-        Enables the option to show the thumbnail instead of the icon when dragging.
-        """
-        print("\nAtivando a opção 'Mostrar miniaturas ao invés de ícones'...")
-        try:
-            show_thumbnail_instead_of_icons_command = 'Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "ShowThumbnailInsteadOfIcons" -Value 1 -Force'
-            subprocess.run(["powershell", "-Command", show_thumbnail_instead_of_icons_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            print("Opção 'Mostrar miniaturas ao invés de ícones' habilitada com sucesso.")
-        except subprocess.CalledProcessError as e:
-            print(f"Erro ao habilitar 'Mostrar miniaturas ao invés de ícones': {e}")
 
 
     def enable_network_sharing():
@@ -197,11 +152,10 @@ class WindowsConfiguration():
             print(f"Ocorreu um erro ao adicionar usuários: {e}")
 
 
-    def adjust_computer_name(new_name):
+    def alter_computer_name(new_name):
         """
         Adjusts the computer name.
         """
-        print(f"\nAjustando nome do computador para '{new_name}'...")
         try:
             adjust_computer_name_command = f'Rename-Computer -NewName "{new_name}"'
             subprocess.run(["powershell", "-Command", adjust_computer_name_command], check=True)
@@ -248,16 +202,10 @@ class WindowsConfiguration():
         """
         Reinitializes the computer immediately.
         """
-        answer = input("Deseja reinicializar o computador? (s/n)")
-        if answer == "s":
-            print("Iniciando reinicialização do computador...")
-            try:
-                # The "/r" parameter means reboot
-                # The "/f" parameter forces the termination of running programs, if necessary.
-                subprocess.run(["shutdown", "/r", "/f"], check=True)
-                print("Comando de reinicialização executado com sucesso.")
-            except Exception as e:
-                print(f"Erro ao tentar reinicializar o computador: {e}")
-        else:
-            print("O script foi executado com sucesso.")
-            print("Algumas alterações serão aplicadas apenas após reinicialização.")
+        try:
+            # The "/r" parameter means reboot
+            # The "/f" parameter forces the termination of running programs, if necessary.
+            subprocess.run(["shutdown", "/r", "/f", "/s"], check=True)
+            print("Comando de reinicialização executado com sucesso.")
+        except Exception as e:
+            print(f"Erro ao tentar reinicializar o computador: {e}")
