@@ -27,6 +27,12 @@ O executável é gerado com Pyllancer, permitindo rodar diretamente no sistema s
 
 *Requisitos*
 
-Windows 11
+- Windows 11
 
-Python 3.11.9+ (apenas se quiser rodar o código-fonte ao invés do executável)
+- Python 3.11.9+ (apenas se quiser rodar o código-fonte ao invés do executável)
+
+*Observações*
+
+- O script deve ser executado com permissões de administrador.
+
+- A lógica de instalação dos softwares padrão busca pelos softwares presentes no dicionário 'softwares_dict' em uma pasta chamada 'instaladores'. Por padrão, o script vai apenas informar que não encontrou o caminho especificado do executável.  
