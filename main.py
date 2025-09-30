@@ -1,3 +1,4 @@
+import subprocess
 from modules.information import SystemInformation as sysinfo
 from modules.softwares import Softwares as softwares
 from modules.windows import WindowsConfiguration as winconfig
@@ -39,7 +40,7 @@ def main():
     winconfig.enable_rdp()
 
     print("\n--- Configurações de Desempenho ---")
-    print("\nConfigurando para melhor desempenho...")
+    print("\nAlterando configurações...")
     winconfig.configure_performance_settings()
 
     print("\n--- Configurando Atualizações Automáticas ---")
@@ -50,7 +51,8 @@ def main():
     winconfig.enable_telnet_and_smb()
 
     print("\n--- Configurações de Rede ---")
-    # winconfig.enable_network_sharing()
+    print("\nHabilitando compartilhamento de rede...")
+    winconfig.enable_firewall_group_rules(winconfig)
 
     print("\n--- Configurações de Energia ---")
     print("\nConfigurando todas as opções de energia e suspensão para 1 hora.")
@@ -58,9 +60,9 @@ def main():
 
     print("\n--- Configuração do Nome do Computador ---")
     print(f"Nome atual do computador: {os.environ['COMPUTERNAME']}")
-    new_computer_name = input("\nDigite o novo nome do computador (ou pressione Enter para manter o nome atual): ")
+    new_computer_name = input("\nDigite o novo nome do computador ou pressione Enter para manter o nome atual: ")
     if not new_computer_name:
-        new_computer_name = os.environ['COMPUTERNAME']
+        print("Nome do computador não alterado.")
 
     else:
         print(f"\nAlterando nome do computador para '{new_computer_name}'...")
@@ -74,11 +76,12 @@ def main():
     winconfig.create_system_restore_point()
     
     print("\n--- Finalizando Script ---")
-    answer = input("Digite 's' para reiniciar o computador ou qualquer outra tecla para sair: ")
+    answer = input("Digite 's' para reiniciar o computador enter para finalizar o script: ")
     if answer.lower() == 's':
         winconfig.reboot_computer()
-    else:
+    elif not answer or answer.lower() != 's':
         print("Script executado com sucesso!\nAlgumas alterações serão aplicadas após reinicialização.")
 
 if __name__ == "__main__":
+    subprocess.run(["cls"], shell=True)
     main()
