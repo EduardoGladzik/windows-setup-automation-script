@@ -3,7 +3,7 @@ import pyautogui
 
 class WindowsConfiguration():
     time_in_minutes = 60
-    commands = {
+    timeout_commands = {
         "ac_monitor_timeout": f'powercfg /change monitor-timeout-ac {time_in_minutes}',
         "dc_monitor_timeout": f'powercfg /change monitor-timeout-dc {time_in_minutes}',
         "ac_standby_timeout": f'powercfg /change standby-timeout-ac {time_in_minutes}',
@@ -11,7 +11,10 @@ class WindowsConfiguration():
         "ac_hibernate_timeout": f'powercfg /change hibernate-timeout-ac {time_in_minutes}',
         "dc_hibernate_timeout": f'powercfg /change hibernate-timeout-dc {time_in_minutes}',
     }
-
+    firewall_groups = [
+        "Descoberta de Rede",
+        "Compartilhamento de Arquivo e Impressora",
+    ]
 
     def disable_uac():
         """
@@ -19,7 +22,7 @@ class WindowsConfiguration():
         """
         try:
             uac_command = 'Set-ItemProperty -Path "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System" -Name "EnableLUA" -Value 0 -Force'
-            subprocess.run(["powershell", "-Command", uac_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            subprocess.run(["powershell", "-Command", uac_command], check=True)
             print("UAC desabilitado com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao desabilitar UAC: {e}")
@@ -31,35 +34,22 @@ class WindowsConfiguration():
         """
         try:
             rdp_command = 'Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name "fDenyTSConnections" -Value 0 -Force'
-            subprocess.run(["powershell", "-Command", rdp_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            subprocess.run(["powershell", "-Command", rdp_command], check=True)
             print("Conexão com Área de Trabalho Remota habilitada com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao habilitar Conexão com Área de Trabalho Remota: {e}")
 
 
-    def enable_network_sharing():
+    def enable_firewall_group_rules(self):
         """
         Enables network sharing for all profiles.
         """
-        print("\nHabilitando compartilhamento de rede para todos os perfis...")
-        try:
-            # Network profiles: Domain, Private and Public
-            network_profiles = ["Domain", "Private", "Public"]
-           
-            # Firewall rule groups to be enabled
-            firewall_rules = [
-                "Descoberta de Rede",
-                "Compartilhamento de Arquivo e Impressora (SMB-Entrada)"
-            ]
-          
-            for profile in network_profiles:
-                for rule in firewall_rules:
-                    command = f'netsh advfirewall firewall set rule group="{rule}" new profile={profile} enable=yes'
-                    subprocess.run(["powershell", "-Command", command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
-            
-            print("Compartilhamento de rede habilitado com sucesso para todos os perfis.")
-        except subprocess.CalledProcessError as e:
-            print(f"Erro ao habilitar compartilhamento de rede: {e}")
+        for group in self.firewall_groups:
+            print(f"Habilitando regras de firewall para o grupo: {group}")
+            try:
+                subprocess.run(["netsh", "advfirewall", "firewall", "set", "rule", f"group={group}", "new", "enable=Yes"], check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Erro ao habilitar compartilhamento de rede: {e}")
 
 
     def configure_sleep_time(self):
@@ -67,8 +57,8 @@ class WindowsConfiguration():
         Configures the sleep time to 1 hour.
         """
         try:
-            for command in self.commands.values():
-                subprocess.run(command.split(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            for command in self.timeout_commands.values():
+                subprocess.run(command.split(), check=True)
 
             print("Todas as opções de energia e suspensão ajustadas para 1 hora.")
         except subprocess.CalledProcessError as e:
@@ -133,8 +123,7 @@ class WindowsConfiguration():
 
             for command in commands:
                 subprocess.run(["powershell", "-Command", command], 
-                            check=True, 
-                            creationflags=subprocess.CREATE_NO_WINDOW)
+                            check=True)
 
             print("Atualizações automáticas configuradas com sucesso.")
         except subprocess.CalledProcessError as e:
@@ -148,10 +137,10 @@ class WindowsConfiguration():
          """
          try:
              telnet_command = 'Enable-WindowsOptionalFeature -Online -FeatureName TelnetClient -All'
-             subprocess.run(["powershell", "-Command", telnet_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+             subprocess.run(["powershell", "-Command", telnet_command], check=True)
             
              smb_command = 'Enable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -All'
-             subprocess.run(["powershell", "-Command", smb_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+             subprocess.run(["powershell", "-Command", smb_command], check=True)
 
              print("Cliente Telnet e suporte SMB habilitados com sucesso.")
          except subprocess.CalledProcessError as e:
@@ -176,7 +165,7 @@ class WindowsConfiguration():
         """
         try:
             enable_system_protection_command = 'Enable-ComputerRestore -Drive "C:"'
-            subprocess.run(["powershell", "-Command", enable_system_protection_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            subprocess.run(["powershell", "-Command", enable_system_protection_command], check=True)
             print("Proteção do sistema habilitada com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao habilitar proteção do sistema: {e}")
@@ -184,7 +173,7 @@ class WindowsConfiguration():
         print("Definindo tamanho do ponto de restauração para 10GB...")
         try:
             set_system_restore_size_command = 'Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore" -Name "SRQuotaSize" -Value 10240 -Force'
-            subprocess.run(["powershell", "-Command", set_system_restore_size_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            subprocess.run(["powershell", "-Command", set_system_restore_size_command], check=True)
             print("Tamanho do ponto de restauração definido para 10GB com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao definir tamanho do ponto de restauração: {e}")
@@ -196,7 +185,7 @@ class WindowsConfiguration():
         """
         try:
             create_system_restore_point_command = 'Checkpoint-Computer -Description "System restore point before reboot"'
-            subprocess.run(["powershell", "-Command", create_system_restore_point_command], check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            subprocess.run(["powershell", "-Command", create_system_restore_point_command], check=True)
             print("Ponto de restauração do sistema criado com sucesso.")
         except subprocess.CalledProcessError as e:
             print(f"Erro ao criar ponto de restauração do sistema: {e}")
