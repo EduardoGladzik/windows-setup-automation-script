@@ -3,7 +3,7 @@ import winreg
 
 class Softwares():
     
-    software_list = {
+    software_dict = {
             "7zip": {
                 "local_path": r"instaladores\7z2501-x64.exe",
                 "silent_parameter": "/S",

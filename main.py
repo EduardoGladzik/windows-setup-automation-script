@@ -20,7 +20,7 @@ def main():
         print(f"O arquivo '{sysinfo.filename}' já existe na área de trabalho.")
 
     print("\n--- Instalação de Softwares ---")
-    for name, data in softwares.software_list.items():
+    for name, data in softwares.software_dict.items():
         if softwares.is_installed(data["verification_name"]):
             print(f"\n{name} já está instalado. Pulando instalação.")
             continue
